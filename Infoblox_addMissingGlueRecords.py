@@ -4,6 +4,14 @@
 Created on Sun Aug 22 22:31:57 2021
 
 @author: etushsi
+@name  : Infoblox_addMissingGlueRecords.py
+@short_description: Assigns temporary ns-group, and then re-assigns the original ns-group to a DNS zone
+@description: Uses Infoblox WAPI to first assign a ns-group DummyNS to the affected DNS zones stored in a file
+              and then reassigns the original ns-group - e.g. NS-internal. 
+              This helps resolves the issue observed where glue records of sevaral sub-domains in an 
+              authoritative zone go missing even though the configuration for name-servers exist.
+@input : path of file where the list of zones is stored
+@output: None
 """
 
 import requests
@@ -22,6 +30,11 @@ class glueRecords():
     sess.headers.update({'Content-Type': 'application/x-www-form-urlencoded'})
     
     def read_zone_list(self,filepath):
+        """ 
+        @description: Read the affected zones from a file
+        @input: Filepath string
+        @output: list of zones
+        """
         # sentinel=''
         # print('Enter list of zones: (Terminate list by an extra newline)')
         # zones='\n'.join(iter(input,sentinel)).splitlines()
@@ -33,6 +46,11 @@ class glueRecords():
             print("Exception occured : ",e)
             
     def get_grid(self):
+        """
+        @description: get _ref of the grid
+        @input: None
+        @output:_ref string for the grid
+        """
         try:
             url_grid = self.url_common + 'grid'
             return self.sess.get(url_grid,auth=HTTPBasicAuth(os.getenv('infoblox_api_user'), os.getenv('infoblox_api_password')),verify=False).json()[0]['_ref']
@@ -41,6 +59,11 @@ class glueRecords():
 
 
     def restart_grid(self):
+        """
+        @description: Restart grid services if needed after reassigning NS-group to affected zones
+        @input: None
+        @output: None
+        """
         try:
             payload = json.dumps({
                                   "restart_option": "RESTART_IF_NEEDED",
@@ -53,7 +76,12 @@ class glueRecords():
             print("Exception occured : ",e)
         
         
-    def rectify_zones(self):    
+    def rectify_zones(self):
+        """
+        @description: Assign a temp and reassign actual NS-group to affected zones
+        @input: None
+        @output: None
+        """
         try:
             url_authzone = self.url_common + r'zone_auth?_return_fields=ns_group&fqdn='
             for zone in self.read_zone_list(sys.argv[1]):
