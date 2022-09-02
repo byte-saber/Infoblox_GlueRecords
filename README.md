@@ -10,5 +10,5 @@ The script uses Infoblox WAPI. Credentials can be fetched from passbolt and stor
 
 Usage:
 ```
-$ ./Infoblox_addMissingGlueRecords.py ./listOfZones.txt
+$ ./Infoblox_addMissingGlueRecords.py infoblox.example.com ./listOfZones.txt
 ```

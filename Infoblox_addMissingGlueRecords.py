@@ -3,14 +3,14 @@
 """
 Created on Sun Aug 22 22:31:57 2021
 
-@author: etushsi
+@author: tushar2911@gmail.com
 @name  : Infoblox_addMissingGlueRecords.py
 @short_description: Assigns temporary ns-group, and then re-assigns the original ns-group to a DNS zone
 @description: Uses Infoblox WAPI to first assign a ns-group DummyNS to the affected DNS zones stored in a file
-              and then reassigns the original ns-group - e.g. NS-internal. 
+              and then reassigns the original ns-group 
               This helps resolves the issue observed where glue records of sevaral sub-domains in an 
               authoritative zone go missing even though the configuration for name-servers exist.
-@input : path of file where the list of zones is stored
+@input : 1. URL of infoblox, 2. path of file where the list of zones is stored
 @output: None
 """
 
@@ -25,7 +25,7 @@ import sys
 load_dotenv()
 
 class glueRecords():
-    url_common = 'https://infoblox.mgmt.ericsson.se/wapi/v2.9.1/'
+    url_common = 'https://'+sys.argv[1]+'/wapi/v2.9.1/'
     sess=requests.Session()
     sess.headers.update({'Content-Type': 'application/x-www-form-urlencoded'})
     
@@ -84,7 +84,7 @@ class glueRecords():
         """
         try:
             url_authzone = self.url_common + r'zone_auth?_return_fields=ns_group&fqdn='
-            for zone in self.read_zone_list(sys.argv[1]):
+            for zone in self.read_zone_list(sys.argv[2]):
                 zone_object = self.sess.get(url_authzone+zone,verify=False)
                 zone_ref=zone_object.json()[0]['_ref']
                 zone_ns_group=zone_object.json()[0]['ns_group']
