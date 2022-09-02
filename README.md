@@ -12,3 +12,13 @@ Usage:
 ```
 $ ./Infoblox_addMissingGlueRecords.py infoblox.example.com ./listOfZones.txt
 ```
+
+Here is how you can get a list of zones that need to be corrected from a DNS server log showing zone transfer failures and invoke the python script there itself
+``` 
+$ more zoneCorrection.sh 
+#!/bin/bash
+egrep -i ".*: has no NS records$" /var/log/dns.log | awk '{print $7}' | cut -d '/' -f1  |  sort -u > /var/tmp/noGlueRecords
+python -m Infoblox_addMissingGlueRecords.py infoblox.example.com /var/tmp/noGlueRecords
+mailx -s "Zones that needed correction" -a /var/tmp/noGlueRecords tushar2911@gmail.com
+``` 
+
